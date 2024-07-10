@@ -130,7 +130,7 @@ ntfy-toast.exe -t "Title" -m "Message" -persistent
 | --- | --- | --- |
 | `-t` | `<title string>` | Title / first line of text in notification |
 | `-m` | `<message string>` | Message displayed in notification |
-| `-b` | `<btn1;bbtn2 string>` | Buttons <br /> List multiple buttons separated by `;` |
+| `-b` | `<btn1;btn2 string>` | Buttons <br /> List multiple buttons separated by `;` |
 | `-tb` |  | Textbox on the bottom line, only if buttons are not specified |
 | `-p` | `<image URI>` | Picture / image, local files only |
 | `-id` | `<id>` | sets id for a notification to be able to close it later |
