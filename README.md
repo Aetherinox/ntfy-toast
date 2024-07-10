@@ -132,13 +132,13 @@ ntfy-toast.exe -t "Title" -m "Message" -persistent
 | `-m` | `<message string>` | Message displayed in notification |
 | `-b` | `<btn1;bbtn2 string>` | Buttons <br /> List multiple buttons separated by `;` |
 | `-tb` |  | Textbox on the bottom line, only if buttons are not specified |
-| `-p` | `<image URI>` | Picture / image, local files only. |
-| `-id` | `<id>` | Picture / image, local files only. |
+| `-p` | `<image URI>` | Picture / image, local files only |
+| `-id` | `<id>` | sets id for a notification to be able to close it later |
 | `-s` | `<sound URI>` | Sound when notification opened <br /><br /> [Possible options](http://msdn.microsoft.com/en-us/library/windows/apps/hh761492.aspx) |
 | `-silent` |  | Disable playing sound when notification appears |
 | `-persistent` |  | Force notification to stay on screen |
 | `-d` | `short, long` | How long a notification stays on screen. <br /><br /> Only works if `-persistent` not specified. <br /><br /> Can only pick two options: <br />- `short` (7 seconds) <br /> - `long` (25 seconds) |
-| `-appID` | `<App.ID>` | Don't create a shortcut but use the provided app id. |
+| `-appID` | `<App.ID>` | Don't create a shortcut but use the provided app id |
 | `-pid` | `<pid>` | Query the appid for the process <pid>, use -appID as fallback. (Only relevant for applications that might be packaged for the store |
 | `-pipeName` | `<\.\pipe\pipeName\>` | Name pipe which is used for callbacks |
 | `-application` | `<C:\foo\bar.exe>` | App to start if the pipe does not exist |
