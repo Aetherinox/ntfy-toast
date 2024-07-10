@@ -1,19 +1,24 @@
 /*
-    SnoreToast is capable to invoke Windows 8 toast notifications.
-    Copyright (C) 2019  Hannah von Reth <vonreth@kde.org>
+    Copyright 2024-2024 Aetherinox
+    Copyright 2013-2019 Hannah von Reth <vonreth@kde.org>
 
-    SnoreToast is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    SnoreToast is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with SnoreToast.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include <QCoreApplication>
@@ -25,16 +30,17 @@
 
 #include <iostream>
 
-#include <snoretoastactions.h>
+#include <ntfytoastactions.h>
 
 namespace {
-constexpr int NOTIFICATION_COUNT = 10;
+    constexpr int NOTIFICATION_COUNT = 10;
 }
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     QLocalServer *server = new QLocalServer();
+
     QObject::connect(server, &QLocalServer::newConnection, server, [server]() {
         auto sock = server->nextPendingConnection();
         sock->waitForReadyRead();
@@ -54,49 +60,54 @@ int main(int argc, char *argv[])
         }
         const QString action = map["action"];
 
-        const auto snoreAction = SnoreToastActions::getAction(action.toStdWString());
+        const auto ntfyAction = NtfyToastActions::getAction(action.toStdWString());
 
         std::wcout << qPrintable(data) << std::endl;
-        std::wcout << "Action: " << qPrintable(action) << " " << static_cast<int>(snoreAction)
+        std::wcout << "Action: " << qPrintable(action) << " " << static_cast<int>(ntfyAction)
                    << std::endl;
 
-        switch (snoreAction) {
-        case SnoreToastActions::Actions::Clicked:
-            break;
-        case SnoreToastActions::Actions::Hidden:
-            break;
-        case SnoreToastActions::Actions::Dismissed:
-            break;
-        case SnoreToastActions::Actions::Timedout:
-            break;
-        case SnoreToastActions::Actions::ButtonClicked:
-            break;
-        case SnoreToastActions::Actions::TextEntered:
-            break;
-        case SnoreToastActions::Actions::Error:
-            break;
+        switch (ntfyAction) {
+            case NtfyToastActions::Actions::Clicked:
+                break;
+            case NtfyToastActions::Actions::Hidden:
+                break;
+            case NtfyToastActions::Actions::Dismissed:
+                break;
+            case NtfyToastActions::Actions::Timedout:
+                break;
+            case NtfyToastActions::Actions::ButtonClicked:
+                break;
+            case NtfyToastActions::Actions::TextEntered:
+                break;
+            case NtfyToastActions::Actions::Error:
+                break;
         }
     });
+
     server->listen("foo");
     std::wcout << qPrintable(server->fullServerName()) << std::endl;
 
-    const QString appId = "SnoreToast.Qt.Example";
+    const QString appId = "NtfyToast.Qt.Example";
     QProcess proc(&app);
-    proc.start("SnoreToast.exe",
-               { "-install", "SnoreToastTestQt", app.applicationFilePath(), appId });
+    proc.start("NtfyToast.exe",
+               { "-install", "NtfyToastTestQt", app.applicationFilePath(), appId });
     proc.waitForFinished();
+
     std::wcout << proc.exitCode() << std::endl;
     std::wcout << qPrintable(proc.readAllStandardOutput()) << std::endl;
     std::wcout << qPrintable(proc.readAllStandardError()) << std::endl;
 
     QTimer *timer = new QTimer(&app);
+
     app.connect(timer, &QTimer::timeout, timer, [&] {
         static int id = 0;
+
         if (id >= NOTIFICATION_COUNT) {
             timer->stop();
         }
+
         auto proc = new QProcess(&app);
-        proc->start("SnoreToast.exe",
+        proc->start("NtfyToast.exe",
                     { "-t", "test", "-m", "message", "-pipename", server->fullServerName(), "-id",
                       QString::number(id++), "-appId", appId, "-application",
                       app.applicationFilePath() });
@@ -105,17 +116,22 @@ int main(int argc, char *argv[])
         proc->connect(proc, QOverload<int>::of(&QProcess::finished), proc, [proc, currentId, &app] {
             std::wcout << qPrintable(proc->readAllStandardOutput()) << std::endl;
             std::wcout << qPrintable(proc->readAllStandardError()) << std::endl;
+
             if (proc->error() != QProcess::UnknownError) {
                 std::wcout << qPrintable(proc->errorString()) << std::endl;
             }
+
             std::wcout << qPrintable(proc->program()) << L" Notification: " << currentId
                        << L" exited with: " << proc->exitCode() << std::endl;
+
             if (currentId >= NOTIFICATION_COUNT) {
                 app.quit();
             }
+
             proc->deleteLater();
         });
     });
+
     timer->start(1000);
 
     return app.exec();

@@ -24,10 +24,50 @@
 #pragma once
 
 #include <string>
+#include <map>
+#include <vector>
 
-constexpr int NTFYTOAST_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
-constexpr int NTFYTOAST_VERSION_MINOR = @PROJECT_VERSION_MINOR@;
-constexpr int NTFYTOAST_VERSION_PATCH = @PROJECT_VERSION_PATCH@;
-inline const std::wstring NTFYTOAST_VERSION = L"@PROJECT_VERSION@";
+class NtfyToastActions
+{
+public:
+    enum class Actions {
+        Clicked,
+        Hidden,
+        Dismissed,
+        Timedout,
+        ButtonClicked,
+        TextEntered,
 
-#define NTFYTOAST_CALLBACK_GUID "{@NTFYTOAST_CALLBACK_GUID@}"
+        Error = -1
+    };
+
+    static const inline std::wstring &getActionString(const Actions &a)
+    {
+        return actionMap().at(a);
+    }
+
+    template<typename T>
+    static inline NtfyToastActions::Actions getAction(const T &s)
+    {
+        for (const auto &a : actionMap()) {
+            if (a.second.compare(s) == 0) {
+                return a.first;
+            }
+        }
+        return NtfyToastActions::Actions::Error;
+    }
+
+private:
+    static const std::map<Actions, std::wstring> &actionMap()
+    {
+        static const std::map<Actions, std::wstring> _ActionStrings = {
+            { Actions::Clicked, L"clicked" },
+            { Actions::Hidden, L"hidden" },
+            { Actions::Dismissed, L"dismissed" },
+            { Actions::Timedout, L"timedout" },
+            { Actions::ButtonClicked, L"buttonClicked" },
+            { Actions::TextEntered, L"textEntered" }
+        };
+        return _ActionStrings;
+    }
+};

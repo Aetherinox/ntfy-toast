@@ -1,1 +1,1 @@
-cmrc_add_resource_library(snoreretoastsources 256-256-snoretoast.png help.txt NAMESPACE SnoreToastResource)
+cmrc_add_resource_library(ntfyretoastsources 256-256-ntfytoast.png help.txt NAMESPACE NtfyToastResource)

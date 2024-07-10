@@ -1,3 +1,26 @@
+# # # # #
+#   Copyright 2024-2024 Aetherinox
+#   Copyright 2013-2019 Hannah von Reth <vonreth@kde.org>
+#
+#   Permission is hereby granted, free of charge, to any person obtaining a copy
+#   of this software and associated documentation files (the "Software"), to deal
+#   in the Software without restriction, including without limitation the rights
+#   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#   copies of the Software, and to permit persons to whom the Software is
+#   furnished to do so, subject to the following conditions:
+#
+#   The above copyright notice and this permission notice shall be included in all
+#   copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#   SOFTWARE.
+# # # # #
+
 import ctypes
 import os
 import subprocess
@@ -5,8 +28,8 @@ import sys
 import time
 import threading
 
-PIPE_NAME = r"\\.\PIPE\snorepy"
-APP_ID = "SnoreToast.Example.Python"
+PIPE_NAME = r"\\.\PIPE\ntfypy"
+APP_ID = "NtfyToast.Example.Python"
 BUF_SIZE = 1024
 
 def server():
@@ -43,14 +66,14 @@ serverThread = None
 try:
     # install a shortcut with a app id, this will change the displayed origin of the notification, in the notification and the action center
     # for different ways how to provide such an app id, have a look at the readme
-    run(["snoretoast", "-install", "Snoretoast Python Example", sys.executable, APP_ID])
+    run(["ntfytoast", "-install", "NtfyToast Python Example", sys.executable, APP_ID])
 
 
     # start a server, the server will receive callbacks from the active notification and notifications interacted with in the action center
     serverThread = threading.Thread(target=server, daemon=True)
     serverThread.start()
     for i in range(10):
-        run(["snoretoast", "-t", "Snoretoast ❤ python", "-m", "This rocks", "-b", "🎸;This;❤;" + str(i), "-p", os.path.join(os.path.dirname(__file__), "snoretoast-python.png"),
+        run(["ntfytoast", "-t", "NtfyToast ❤ python", "-m", "This rocks", "-b", "🎸;This;❤;" + str(i), "-p", os.path.join(os.path.dirname(__file__), "ntfytoast-python.png"),
              "-id", str(i), "-pipeName", PIPE_NAME, "-appID", APP_ID])
 
     while True:

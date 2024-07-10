@@ -1,22 +1,27 @@
 /*
-    SnoreToast is capable to invoke Windows 8 toast notifications.
-    Copyright (C) 2013-2019  Hannah von Reth <vonreth@kde.org>
+    Copyright 2024-2024 Aetherinox
+    Copyright 2013-2019 Hannah von Reth <vonreth@kde.org>
 
-    SnoreToast is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    SnoreToast is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with SnoreToast.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
-#include "snoretoasts.h"
+#include "ntfytoasts.h"
 #include "toasteventhandler.h"
 #include "linkhelper.h"
 #include "utils.h"
@@ -37,10 +42,10 @@ namespace {
 constexpr DWORD EVENT_TIMEOUT = 60 * 1000; // one minute should be more than enough
 }
 
-class SnoreToastsPrivate
+class NtfyToastsPrivate
 {
 public:
-    SnoreToastsPrivate(SnoreToasts *parent, const std::wstring &appID)
+    NtfyToastsPrivate(NtfyToasts *parent, const std::wstring &appID)
         : m_parent(parent), m_appID(appID), m_id(std::to_wstring(GetCurrentProcessId()))
     {
 
@@ -58,13 +63,13 @@ public:
                         .Get(),
                 &m_toastManager);
         if (!SUCCEEDED(hr)) {
-            std::wcerr << L"SnoreToasts: Failed to register com Factory, please make sure you "
+            std::wcerr << L"NtfyToasts: Failed to register com Factory, please make sure you "
                           L"correctly initialised with RO_INIT_MULTITHREADED"
                        << std::endl;
-            m_action = SnoreToastActions::Actions::Error;
+            m_action = NtfyToastActions::Actions::Error;
         }
     }
-    SnoreToasts *m_parent;
+    NtfyToasts *m_parent;
 
     std::wstring m_appID;
     std::filesystem::path m_pipeName;
@@ -84,7 +89,7 @@ public:
 
     Duration m_duration = Duration::Short;
 
-    SnoreToastActions::Actions m_action = SnoreToastActions::Actions::Clicked;
+    NtfyToastActions::Actions m_action = NtfyToastActions::Actions::Clicked;
 
     ComPtr<IXmlDocument> m_toastXml;
     ComPtr<IToastNotificationManagerStatics> m_toastManager;
@@ -115,22 +120,22 @@ public:
     }
 };
 
-SnoreToasts::SnoreToasts(const std::wstring &appID) : d(new SnoreToastsPrivate(this, appID))
+NtfyToasts::NtfyToasts(const std::wstring &appID) : d(new NtfyToastsPrivate(this, appID))
 {
     Utils::registerActivator();
 }
 
-SnoreToasts::~SnoreToasts()
+NtfyToasts::~NtfyToasts()
 {
     Utils::unregisterActivator();
     delete d;
 }
 
-HRESULT SnoreToasts::displayToast(const std::wstring &title, const std::wstring &body,
+HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &body,
                                   const std::filesystem::path &image)
 {
     // asume that we fail
-    d->m_action = SnoreToastActions::Actions::Error;
+    d->m_action = NtfyToastActions::Actions::Error;
 
     d->m_title = title;
     d->m_body = body;
@@ -152,7 +157,7 @@ HRESULT SnoreToasts::displayToast(const std::wstring &title, const std::wstring 
     ComPtr<IXmlNamedNodeMap> rootAttributes;
     ST_RETURN_ON_ERROR(root->get_Attributes(&rootAttributes));
 
-    const auto data = formatAction(SnoreToastActions::Actions::Clicked);
+    const auto data = formatAction(NtfyToastActions::Actions::Clicked);
     ST_RETURN_ON_ERROR(addAttribute(L"launch", rootAttributes.Get(), data));
 
     /*
@@ -196,22 +201,22 @@ HRESULT SnoreToasts::displayToast(const std::wstring &title, const std::wstring 
 
     printXML();
     ST_RETURN_ON_ERROR(createToast());
-    d->m_action = SnoreToastActions::Actions::Clicked;
+    d->m_action = NtfyToastActions::Actions::Clicked;
     return S_OK;
 }
 
-SnoreToastActions::Actions SnoreToasts::userAction()
+NtfyToastActions::Actions NtfyToasts::userAction()
 {
     if (d->m_eventHanlder.Get()) {
         HANDLE event = d->m_eventHanlder.Get()->event();
         if (WaitForSingleObject(event, EVENT_TIMEOUT) == WAIT_TIMEOUT) {
-            d->m_action = SnoreToastActions::Actions::Error;
+            d->m_action = NtfyToastActions::Actions::Error;
         } else {
             d->m_action = d->m_eventHanlder.Get()->userAction();
         }
-        // the initial value is SnoreToastActions::Actions::Hidden so if no action happend when we
+        // the initial value is NtfyToastActions::Actions::Hidden so if no action happend when we
         // end up here, a hide was requested
-        if (d->m_action == SnoreToastActions::Actions::Hidden) {
+        if (d->m_action == NtfyToastActions::Actions::Hidden) {
             d->m_notifier->Hide(d->m_notification.Get());
             tLog << L"The application hid the toast using ToastNotifier.hide()";
         }
@@ -220,7 +225,7 @@ SnoreToastActions::Actions SnoreToasts::userAction()
     return d->m_action;
 }
 
-bool SnoreToasts::closeNotification()
+bool NtfyToasts::closeNotification()
 {
     std::wstringstream eventName;
     eventName << L"ToastEvent" << d->m_id;
@@ -232,7 +237,7 @@ bool SnoreToasts::closeNotification()
     }
     if (auto history = d->getHistory()) {
         if (ST_CHECK_RESULT(history->RemoveGroupedTagWithId(
-                    HStringReference(d->m_id.c_str()).Get(), HStringReference(L"SnoreToast").Get(),
+                    HStringReference(d->m_id.c_str()).Get(), HStringReference(L"NtfyToast").Get(),
                     HStringReference(d->m_appID.c_str()).Get()))) {
             return true;
         }
@@ -241,45 +246,45 @@ bool SnoreToasts::closeNotification()
     return false;
 }
 
-void SnoreToasts::setSound(const std::wstring &soundFile)
+void NtfyToasts::setSound(const std::wstring &soundFile)
 {
     d->m_sound = soundFile;
 }
 
-void SnoreToasts::setSilent(bool silent)
+void NtfyToasts::setSilent(bool silent)
 {
     d->m_silent = silent;
 }
 
-void SnoreToasts::setPersistent(bool persistent)
+void NtfyToasts::setPersistent(bool persistent)
 {
     d->m_persistent = persistent;
 }
 
-void SnoreToasts::setId(const std::wstring &id)
+void NtfyToasts::setId(const std::wstring &id)
 {
     if (!id.empty()) {
         d->m_id = id;
     }
 }
 
-std::wstring SnoreToasts::id() const
+std::wstring NtfyToasts::id() const
 {
     return d->m_id;
 }
 
-void SnoreToasts::setButtons(const std::wstring &buttons)
+void NtfyToasts::setButtons(const std::wstring &buttons)
 {
     d->m_buttons = buttons;
 }
 
-void SnoreToasts::setTextBoxEnabled(bool textBoxEnabled)
+void NtfyToasts::setTextBoxEnabled(bool textBoxEnabled)
 {
     d->m_textbox = textBoxEnabled;
 }
 
 // Set the value of the "src" attribute of the "image" node
-HRESULT SnoreToasts::setImage()
+HRESULT NtfyToasts::setImage()
 {
     ComPtr<IXmlNodeList> nodeList;
     ST_RETURN_ON_ERROR(
@@ -297,7 +302,7 @@ HRESULT SnoreToasts::setImage()
                               srcAttribute.Get());
 }
 
-HRESULT SnoreToasts::setSound()
+HRESULT NtfyToasts::setSound()
 {
     ComPtr<IXmlNodeList> nodeList;
     ST_RETURN_ON_ERROR(
@@ -328,7 +333,7 @@ HRESULT SnoreToasts::setSound()
 }
 
 // Set the values of each of the text nodes
-HRESULT SnoreToasts::setTextValues()
+HRESULT NtfyToasts::setTextValues()
 {
     ComPtr<IXmlNodeList> nodeList;
     ST_RETURN_ON_ERROR(
@@ -342,7 +347,7 @@ HRESULT SnoreToasts::setTextValues()
     return setNodeValueString(HStringReference(d->m_body.c_str()).Get(), textNode.Get());
 }
 
-HRESULT SnoreToasts::setButtons(ComPtr<IXmlNode> root)
+HRESULT NtfyToasts::setButtons(ComPtr<IXmlNode> root)
 {
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlElement> actionsElement;
     ST_RETURN_ON_ERROR(
@@ -362,7 +367,7 @@ HRESULT SnoreToasts::setButtons(ComPtr<IXmlNode> root)
     return S_OK;
 }
 
-HRESULT SnoreToasts::setTextBox(ComPtr<IXmlNode> root)
+HRESULT NtfyToasts::setTextBox(ComPtr<IXmlNode> root)
 {
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlElement> actionsElement;
     ST_RETURN_ON_ERROR(
@@ -406,13 +411,13 @@ HRESULT SnoreToasts::setTextBox(ComPtr<IXmlNode> root)
 
     ST_RETURN_ON_ERROR(addAttribute(L"content", actionAttributes.Get(), L"Send"));
 
-    const auto data = formatAction(SnoreToastActions::Actions::TextEntered);
+    const auto data = formatAction(NtfyToastActions::Actions::TextEntered);
 
     ST_RETURN_ON_ERROR(addAttribute(L"arguments", actionAttributes.Get(), data));
     return addAttribute(L"hint-inputId", actionAttributes.Get(), L"textBox");
 }
 
-HRESULT SnoreToasts::setEventHandler(ComPtr<IToastNotification> toast)
+HRESULT NtfyToasts::setEventHandler(ComPtr<IToastNotification> toast)
 {
     // Register the event handlers
     EventRegistrationToken activatedToken, dismissedToken, failedToken;
@@ -425,7 +430,7 @@ HRESULT SnoreToasts::setEventHandler(ComPtr<IToastNotification> toast)
     return S_OK;
 }
 
-HRESULT SnoreToasts::setNodeValueString(const HSTRING &inputString, IXmlNode *node)
+HRESULT NtfyToasts::setNodeValueString(const HSTRING &inputString, IXmlNode *node)
 {
     ComPtr<IXmlText> inputText;
     ST_RETURN_ON_ERROR(d->m_toastXml->CreateTextNode(inputString, &inputText));
@@ -437,7 +442,7 @@ HRESULT SnoreToasts::setNodeValueString(const HSTRING &inputString, IXmlNode *no
     return node->AppendChild(inputTextNode.Get(), &pAppendedChild);
 }
 
-HRESULT SnoreToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *attributeMap)
+HRESULT NtfyToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *attributeMap)
 {
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlAttribute> srcAttribute;
     HRESULT hr =
@@ -454,7 +459,7 @@ HRESULT SnoreToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *at
     return hr;
 }
 
-HRESULT SnoreToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *attributeMap,
+HRESULT NtfyToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *attributeMap,
                                   const std::wstring &value)
 {
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlAttribute> srcAttribute;
@@ -469,7 +474,7 @@ HRESULT SnoreToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *at
     return setNodeValueString(HStringReference(value.c_str()).Get(), node.Get());
 }
 
-HRESULT SnoreToasts::createNewActionButton(ComPtr<IXmlNode> actionsNode, const std::wstring &value)
+HRESULT NtfyToasts::createNewActionButton(ComPtr<IXmlNode> actionsNode, const std::wstring &value)
 {
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlElement> actionElement;
     ST_RETURN_ON_ERROR(
@@ -486,12 +491,12 @@ HRESULT SnoreToasts::createNewActionButton(ComPtr<IXmlNode> actionsNode, const s
     ST_RETURN_ON_ERROR(addAttribute(L"content", actionAttributes.Get(), value));
 
     const auto data =
-            formatAction(SnoreToastActions::Actions::ButtonClicked, { { L"button", value } });
+            formatAction(NtfyToastActions::Actions::ButtonClicked, { { L"button", value } });
     ST_RETURN_ON_ERROR(addAttribute(L"arguments", actionAttributes.Get(), data));
     return addAttribute(L"activationType", actionAttributes.Get(), L"foreground");
 }
 
-void SnoreToasts::printXML()
+void NtfyToasts::printXML()
 {
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlNodeSerializer> s;
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlDocument> ss(d->m_toastXml);
@@ -502,44 +507,44 @@ void SnoreToasts::printXML()
     tLog << L"------------------------\n\t\t\t" << str << L"\n\t\t" << L"------------------------";
 }
 
-std::filesystem::path SnoreToasts::pipeName() const
+std::filesystem::path NtfyToasts::pipeName() const
 {
     return d->m_pipeName;
 }
 
-void SnoreToasts::setPipeName(const std::filesystem::path &pipeName)
+void NtfyToasts::setPipeName(const std::filesystem::path &pipeName)
 {
     d->m_pipeName = pipeName;
 }
 
-std::filesystem::path SnoreToasts::application() const
+std::filesystem::path NtfyToasts::application() const
 {
     return d->m_application;
 }
 
-void SnoreToasts::setApplication(const std::filesystem::path &application)
+void NtfyToasts::setApplication(const std::filesystem::path &application)
 {
     d->m_application = application;
 }
 
-void SnoreToasts::setDuration(Duration duration)
+void NtfyToasts::setDuration(Duration duration)
 {
     d->m_duration = duration;
 }
 
-Duration SnoreToasts::duration() const
+Duration NtfyToasts::duration() const
 {
     return d->m_duration;
 }
 
-std::wstring SnoreToasts::formatAction(
-        const SnoreToastActions::Actions &action,
+std::wstring NtfyToasts::formatAction(
+        const NtfyToastActions::Actions &action,
         const std::vector<std::pair<std::wstring_view, std::wstring_view>> &extraData) const
 {
     const auto pipe = d->m_pipeName.wstring();
     const auto application = d->m_application.wstring();
     std::vector<std::pair<std::wstring_view, std::wstring_view>> data = {
-        { L"action", SnoreToastActions::getActionString(action) },
+        { L"action", NtfyToastActions::getActionString(action) },
         { L"notificationId", std::wstring_view(d->m_id) },
         { L"pipe", std::wstring_view(pipe) },
         { L"application", std::wstring_view(application) }
@@ -549,7 +554,7 @@ std::wstring SnoreToasts::formatAction(
 }
 
 // Create and display the toast
-HRESULT SnoreToasts::createToast()
+HRESULT NtfyToasts::createToast()
 {
     ST_RETURN_ON_ERROR(d->m_toastManager->CreateToastNotifierWithId(
             HStringReference(d->m_appID.c_str()).Get(), &d->m_notifier));
@@ -563,7 +568,7 @@ HRESULT SnoreToasts::createToast()
     ComPtr<Notifications::IToastNotification2> toastV2;
     if (SUCCEEDED(d->m_notification.As(&toastV2))) {
         ST_RETURN_ON_ERROR(toastV2->put_Tag(HStringReference(d->m_id.c_str()).Get()));
-        ST_RETURN_ON_ERROR(toastV2->put_Group(HStringReference(L"SnoreToast").Get()));
+        ST_RETURN_ON_ERROR(toastV2->put_Group(HStringReference(L"NtfyToast").Get()));
     }
 
     std::wstring error;
@@ -599,20 +604,20 @@ HRESULT SnoreToasts::createToast()
     return d->m_notifier->Show(d->m_notification.Get());
 }
 
-std::wstring SnoreToasts::version()
+std::wstring NtfyToasts::version()
 {
-    return SNORETOAST_VERSION;
+    return NTFYTOAST_VERSION;
 }
 
-HRESULT SnoreToasts::backgroundCallback(const std::wstring &appUserModelId,
+HRESULT NtfyToasts::backgroundCallback(const std::wstring &appUserModelId,
                                         const std::wstring &invokedArgs, const std::wstring &msg)
 {
     tLog << "CToastNotificationActivationCallback::Activate: " << appUserModelId << " : "
          << invokedArgs << " : " << msg;
     const auto dataMap = Utils::splitData(invokedArgs);
-    const auto action = SnoreToastActions::getAction(dataMap.at(L"action"));
+    const auto action = NtfyToastActions::getAction(dataMap.at(L"action"));
     std::wstring dataString;
-    if (action == SnoreToastActions::Actions::TextEntered) {
+    if (action == NtfyToastActions::Actions::TextEntered) {
         std::wstringstream sMsg;
         sMsg << invokedArgs << L"text=" << msg;
         dataString = sMsg.str();
@@ -632,20 +637,20 @@ HRESULT SnoreToasts::backgroundCallback(const std::wstring &appUserModelId,
     }
 
     tLog << dataString;
-    if (!SetEvent(SnoreToastsPrivate::ctoastEvent())) {
+    if (!SetEvent(NtfyToastsPrivate::ctoastEvent())) {
         tLog << "SetEvent failed" << GetLastError();
         return S_FALSE;
     }
     return S_OK;
 }
-void SnoreToasts::waitForCallbackActivation()
+void NtfyToasts::waitForCallbackActivation()
 {
     Utils::registerActivator();
-    WaitForSingleObject(SnoreToastsPrivate::ctoastEvent(), EVENT_TIMEOUT);
+    WaitForSingleObject(NtfyToastsPrivate::ctoastEvent(), EVENT_TIMEOUT);
     Utils::unregisterActivator();
 }
 
-bool SnoreToasts::useFalbackMode() const
+bool NtfyToasts::useFalbackMode() const
 {
     return d->m_useFallbackMode;
 }

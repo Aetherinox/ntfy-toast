@@ -1,24 +1,30 @@
 /*
-    SnoreToast is capable to invoke Windows 8 toast notifications.
-    Copyright (C) 2013-2019  Hannah von Reth <vonreth@kde.org>
+    Copyright 2024-2024 Aetherinox
+    Copyright 2013-2019 Hannah von Reth <vonreth@kde.org>
 
-    SnoreToast is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-    SnoreToast is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with SnoreToast.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
+
 #pragma once
 
-#include "snoretoastactions.h"
-#include "libsnoretoast_export.h"
+#include "ntfytoastactions.h"
+#include "libntfytoast_export.h"
 
 #include <sdkddkver.h>
 
@@ -44,12 +50,21 @@
 using namespace Microsoft::WRL;
 using namespace ABI::Windows::Data::Xml::Dom;
 
+/*
+    Windows API only allows for two durations to be specified
+        - Short     7 seconds
+        - Long      25 seconds
+
+    To specify a notification that will stay up on the user's screen until
+    they interact with it; you must specify the notification as an alarm.
+*/
+
 enum class Duration {
-    Short, // default 7s
-    Long // 25s
+    Short,
+    Long
 };
 
-class LIBSNORETOAST_EXPORT SnoreToasts
+class LIBNTFYTOAST_EXPORT NtfyToasts
 {
 public:
     static std::wstring version();
@@ -57,12 +72,13 @@ public:
     static HRESULT backgroundCallback(const std::wstring &appUserModelId,
                                       const std::wstring &invokedArgs, const std::wstring &msg);
 
-    SnoreToasts(const std::wstring &appID);
-    ~SnoreToasts();
+    NtfyToasts(const std::wstring &appID);
+    ~NtfyToasts();
 
     HRESULT displayToast(const std::wstring &title, const std::wstring &body,
                          const std::filesystem::path &image);
-    SnoreToastActions::Actions userAction();
+
+    NtfyToastActions::Actions userAction();
     bool closeNotification();
 
     void setSound(const std::wstring &soundFile);
@@ -83,7 +99,7 @@ public:
     Duration duration() const;
     void setDuration(Duration duration);
 
-    std::wstring formatAction(const SnoreToastActions::Actions &action,
+    std::wstring formatAction(const NtfyToastActions::Actions &action,
                               const std::vector<std::pair<std::wstring_view, std::wstring_view>>
                                       &extraData = {}) const;
 
@@ -92,6 +108,7 @@ public:
      * This usually means that no shortcut with the appID is installed.
      * In fallback mode no text replies or buttons are available.
      */
+
     bool useFalbackMode() const;
 
 private:
@@ -114,6 +131,6 @@ private:
 
     void printXML();
 
-    friend class SnoreToastsPrivate;
-    SnoreToastsPrivate *d;
+    friend class NtfyToastsPrivate;
+    NtfyToastsPrivate *d;
 };
