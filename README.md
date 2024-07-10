@@ -151,9 +151,9 @@ ntfy-toast.exe -t "Title" -m "Message" -persistent
 <br />
 
 # Build
-This easiest way to build this package is to download the source and place it somewhere on your system.
+The easiest way to build this package is to download the source and place it somewhere on your system. Then install Visual Studio and launch the application. 
 
-Install Visual Studio and launch the application. Then go to **File** -> **Open** -> **Folder**.
+Go to **File** -> **Open** -> **Folder**.
 
 <br />
 
@@ -165,7 +165,7 @@ Install Visual Studio and launch the application. Then go to **File** -> **Open*
 
 <br />
 
-Select the folder where you downloaded ntfy-toast and open it. After a few moments, a few new folders will be created:
+Select the folder where you downloaded ntfy-toast and open it. After a few moments, a few new folders will be created in your project directory:
 
 - 📁 .vs
 - 📁 out
