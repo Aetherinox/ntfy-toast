@@ -100,20 +100,27 @@ void help(const std::wstring &error)
 
 void version()
 {
-    std::wcerr << L"NtfyToast version " << NtfyToasts::version() << std::endl
-               << L"ToastActivatorCLSID: " << NTFYTOAST_CALLBACK_GUID << std::endl
-               << L"Copyright (C) 2022  Hannah von Reth <vonreth@kde.org>" << std::endl
-               << L"NtfyToast is free software: you can redistribute it and/or modify" << std::endl
-               << L"it under the terms of the GNU Lesser General Public License as published by"
-               << std::endl
-               << L"the Free Software Foundation, either version 3 of the License, or" << std::endl
-               << L"(at your option) any later version." << std::endl;
+    std::wcerr  << std::endl
+                << std::endl
+                << L"---------------------------------------------------------------------" << std::endl
+                << L" Version ................ v" << NtfyToasts::version() << std::endl
+                << L" ToastActivatorCLSID .... " << NTFYTOAST_CALLBACK_GUID << std::endl
+                << L"---------------------------------------------------------------------" << std::endl
+                << std::endl
+                << L" Copyright 2024-2024 Aetherinox" << std::endl
+                << L" Copyright 2013-2019 Hannah von Reth <vonreth@kde.org>" << std::endl
+                << std::endl
+                << L" NtfyToast is free software: you can redistribute it and/or modify" << std::endl
+                << L" it under the terms of the GNU Lesser General Public License as published by"
+                << std::endl
+                << L" the Free Software Foundation, either version 3 of the License, or" << std::endl
+                << L" any later version." << std::endl;
 }
 
 std::filesystem::path getIcon()
 {
     auto image = std::filesystem::temp_directory_path() / "ntfytoast" / NtfyToasts::version()
-            / "logo.png";
+            / "data/logo.png";
 
     /*
         Paths
