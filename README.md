@@ -205,17 +205,17 @@ ntfytoast.exe -install "MyApp\MyApp.lnk" "C:\path\to\myApp.exe" "My.APP_ID"
 
 <br />
 
-When the `.lnk` is created, it will be placed in:
-```
-C:\Users\USER\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
-```
-
-<br />
-
 To get the appID for the application you want to use, you can open Powershell and run the command:
 
 ```powershell
 get-StartApps | Where-Object {$_.Name -like '*YourAppName*'}
+```
+
+<br />
+
+When the `.lnk` is created, it will be placed in:
+```
+C:\Users\USER\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
 ```
 
 <br />
