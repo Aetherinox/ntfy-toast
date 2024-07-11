@@ -141,13 +141,22 @@ HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &
     d->m_body = body;
     d->m_image = std::filesystem::absolute(image);
 
+    /*
+        Templates   : https://learn.microsoft.com/en-us/uwp/api/windows.ui.notifications.toasttemplatetype?view=winrt-26100#fields
+
+        Structure:
+            toast:      The launch attribute of this element defines what arguments will be passed back to your app when the user clicks your toast, allowing you to deep link into the correct content that the toast was displaying. To learn more, see Send a local app notification.
+            visual:     This element represents visual portion of the toast, including the generic binding that contains text and images.
+            actions:    This element represents interactive portion of the toast, including inputs and actions.
+            audio:      This element specifies the audio played when the toast is shown to the user.
+    */
+
     if (!d->m_image.empty()) {
-        ST_RETURN_ON_ERROR(d->m_toastManager->GetTemplateContent(
-                ToastTemplateType_ToastImageAndText02, &d->m_toastXml));
+        ST_RETURN_ON_ERROR(d->m_toastManager->GetTemplateContent(ToastTemplateType_ToastImageAndText02, &d->m_toastXml));
     } else {
-        ST_RETURN_ON_ERROR(d->m_toastManager->GetTemplateContent(ToastTemplateType_ToastText02,
-                                                                 &d->m_toastXml));
+        ST_RETURN_ON_ERROR(d->m_toastManager->GetTemplateContent(ToastTemplateType_ToastText02, &d->m_toastXml));
     }
+
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlNodeList> rootList;
     ST_RETURN_ON_ERROR(
             d->m_toastXml->GetElementsByTagName(HStringReference(L"toast").Get(), &rootList));
@@ -161,7 +170,19 @@ HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &
     ST_RETURN_ON_ERROR(addAttribute(L"launch", rootAttributes.Get(), data));
 
     /*
+        activationType 	Decides the type of activation that will be used when the user interacts with a specific action.
+
+            "foreground"    - Default value. Your foreground app is launched.
+            "background"    - Your corresponding background task is triggered, and you can execute code in the background without interrupting the user.
+            "protocol"      - Launch a different app using protocol activation.
+    */
+
+    ST_RETURN_ON_ERROR(addAttribute(L"activationType", rootAttributes.Get(), L"foreground"));
+
+    /*
         If -persistent is provided in arguments, notification will stay on screen until dismissed by user.
+
+        scenario? = "reminder" | "alarm" | "incomingCall" | "urgent" 
     */
 
     if (d->m_persistent) {
@@ -176,6 +197,7 @@ HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &
     } else if (d->m_textbox) {
         setTextBox(root);
     }
+    
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlElement> audioElement;
     ST_RETURN_ON_ERROR(
             d->m_toastXml->CreateElement(HStringReference(L"audio").Get(), &audioElement));
@@ -190,14 +212,18 @@ HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &
     ST_RETURN_ON_ERROR(audioNode->get_Attributes(&attributes));
     ST_RETURN_ON_ERROR(addAttribute(L"src", attributes.Get()));
     ST_RETURN_ON_ERROR(addAttribute(L"silent", attributes.Get()));
+
     //    printXML();
 
     if (!d->m_image.empty()) {
         ST_RETURN_ON_ERROR(setImage());
     }
+
     ST_RETURN_ON_ERROR(setSound());
 
     ST_RETURN_ON_ERROR(setTextValues());
+
+    std::wcerr  << L" --- " << d->m_toastXml << std::endl;
 
     printXML();
     ST_RETURN_ON_ERROR(createToast());
@@ -297,9 +323,14 @@ HRESULT NtfyToasts::setImage()
     ST_RETURN_ON_ERROR(imageNode->get_Attributes(&attributes));
 
     ComPtr<IXmlNode> srcAttribute;
+
+    /*
+    ST_RETURN_ON_ERROR(attributes->GetNamedItem(HStringReference(L"placement").Get(), &srcAttribute));
+    setNodeValueString(HStringReference(L"hero").Get(), srcAttribute.Get());
+    */
+
     ST_RETURN_ON_ERROR(attributes->GetNamedItem(HStringReference(L"src").Get(), &srcAttribute));
-    return setNodeValueString(HStringReference(d->m_image.wstring().c_str()).Get(),
-                              srcAttribute.Get());
+    return setNodeValueString(HStringReference(d->m_image.wstring().c_str()).Get(), srcAttribute.Get());
 }
 
 HRESULT NtfyToasts::setSound()
@@ -327,7 +358,9 @@ HRESULT NtfyToasts::setSound()
 
     ST_RETURN_ON_ERROR(
             setNodeValueString(HStringReference(sound.c_str()).Get(), srcAttribute.Get()));
+
     ST_RETURN_ON_ERROR(attributes->GetNamedItem(HStringReference(L"silent").Get(), &srcAttribute));
+
     return setNodeValueString(HStringReference(d->m_silent ? L"true" : L"false").Get(),
                               srcAttribute.Get());
 }
@@ -338,11 +371,13 @@ HRESULT NtfyToasts::setTextValues()
     ComPtr<IXmlNodeList> nodeList;
     ST_RETURN_ON_ERROR(
             d->m_toastXml->GetElementsByTagName(HStringReference(L"text").Get(), &nodeList));
+    
     // create the title
     ComPtr<IXmlNode> textNode;
     ST_RETURN_ON_ERROR(nodeList->Item(0, &textNode));
     ST_RETURN_ON_ERROR(
             setNodeValueString(HStringReference(d->m_title.c_str()).Get(), textNode.Get()));
+
     ST_RETURN_ON_ERROR(nodeList->Item(1, &textNode));
     return setNodeValueString(HStringReference(d->m_body.c_str()).Get(), textNode.Get());
 }
@@ -471,6 +506,7 @@ HRESULT NtfyToasts::addAttribute(const std::wstring &name, IXmlNamedNodeMap *att
 
     ComPtr<IXmlNode> pNode;
     ST_RETURN_ON_ERROR(attributeMap->SetNamedItem(node.Get(), &pNode));
+
     return setNodeValueString(HStringReference(value.c_str()).Get(), node.Get());
 }
 
@@ -479,6 +515,7 @@ HRESULT NtfyToasts::createNewActionButton(ComPtr<IXmlNode> actionsNode, const st
     ComPtr<ABI::Windows::Data::Xml::Dom::IXmlElement> actionElement;
     ST_RETURN_ON_ERROR(
             d->m_toastXml->CreateElement(HStringReference(L"action").Get(), &actionElement));
+
     ComPtr<IXmlNode> actionNodeTmp;
     ST_RETURN_ON_ERROR(actionElement.As(&actionNodeTmp));
 
@@ -493,6 +530,7 @@ HRESULT NtfyToasts::createNewActionButton(ComPtr<IXmlNode> actionsNode, const st
     const auto data =
             formatAction(NtfyToastActions::Actions::ButtonClicked, { { L"button", value } });
     ST_RETURN_ON_ERROR(addAttribute(L"arguments", actionAttributes.Get(), data));
+
     return addAttribute(L"activationType", actionAttributes.Get(), L"foreground");
 }
 
@@ -503,7 +541,14 @@ void NtfyToasts::printXML()
     ss.As(&s);
     HSTRING string;
     s->GetXml(&string);
+
     PCWSTR str = WindowsGetStringRawBuffer(string, nullptr);
+
+    /*
+        debug > print xml
+        std::wcerr << str << std::endl;
+    */
+
     tLog << L"------------------------\n\t\t\t" << str << L"\n\t\t" << L"------------------------";
 }
 
@@ -563,9 +608,11 @@ HRESULT NtfyToasts::createToast()
     ST_RETURN_ON_ERROR(GetActivationFactory(
             HStringReference(RuntimeClass_Windows_UI_Notifications_ToastNotification).Get(),
             &factory));
+
     ST_RETURN_ON_ERROR(factory->CreateToastNotification(d->m_toastXml.Get(), &d->m_notification));
 
     ComPtr<Notifications::IToastNotification2> toastV2;
+
     if (SUCCEEDED(d->m_notification.As(&toastV2))) {
         ST_RETURN_ON_ERROR(toastV2->put_Tag(HStringReference(d->m_id.c_str()).Get()));
         ST_RETURN_ON_ERROR(toastV2->put_Group(HStringReference(L"NtfyToast").Get()));
@@ -573,25 +620,32 @@ HRESULT NtfyToasts::createToast()
 
     std::wstring error;
     NotificationSetting setting = NotificationSetting_Enabled;
+
     if (!ST_CHECK_RESULT(d->m_notifier->get_Setting(&setting))) {
         tLog << "Failed to retreive NotificationSettings ensure your appId is registered";
     }
+
     switch (setting) {
     case NotificationSetting_Enabled:
         ST_RETURN_ON_ERROR(setEventHandler(d->m_notification));
         break;
+
     case NotificationSetting_DisabledForApplication:
         error = L"DisabledForApplication";
         break;
+
     case NotificationSetting_DisabledForUser:
         error = L"DisabledForUser";
         break;
+
     case NotificationSetting_DisabledByGroupPolicy:
         error = L"DisabledByGroupPolicy";
         break;
+
     case NotificationSetting_DisabledByManifest:
         error = L"DisabledByManifest";
         break;
+
     }
     if (!error.empty()) {
         std::wstringstream err;
