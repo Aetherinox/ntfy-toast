@@ -213,13 +213,6 @@ get-StartApps | Where-Object {$_.Name -like '*YourAppName*'}
 
 <br />
 
-When the `.lnk` is created, it will be placed in:
-```
-C:\Users\USER\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
-```
-
-<br />
-
 In our example, we can run
 ```powershell
 get-StartApps | Where-Object {$_.Name -like '*Ntfytoast*'}
@@ -240,6 +233,13 @@ This means that if I wanted to use NtfyToast as the app which sends notification
 
 ```
 ntfytoast.exe -install "Ntfytoast\Ntfytoast.lnk" "C:\path\to\ntfytoast.exe" "com.ntfytoast.id"
+```
+
+<br />
+
+When the `.lnk` is created, it will be placed in:
+```
+C:\Users\USER\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
 ```
 
 <br />
