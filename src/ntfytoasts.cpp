@@ -177,7 +177,7 @@ HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &
             "protocol"      - Launch a different app using protocol activation.
     */
 
-    ST_RETURN_ON_ERROR(addAttribute(L"activationType", rootAttributes.Get(), L"foreground"));
+    ST_RETURN_ON_ERROR(addAttribute(L"activationType", rootAttributes.Get(), L"protocol"));
 
     /*
         If -persistent is provided in arguments, notification will stay on screen until dismissed by user.
@@ -223,7 +223,9 @@ HRESULT NtfyToasts::displayToast(const std::wstring &title, const std::wstring &
 
     ST_RETURN_ON_ERROR(setTextValues());
 
+    /*
     std::wcerr  << L" --- " << d->m_toastXml << std::endl;
+    */
 
     printXML();
     ST_RETURN_ON_ERROR(createToast());
