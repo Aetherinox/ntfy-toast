@@ -42,6 +42,9 @@ This library is packaged with [ntfy-desktop](https://github.com/Aetherinox/ntfy-
 - [Features](#features)
 - [Usage](#usage)
 - [CLI Arguments](#cli-arguments)
+  - [Customizing App Name](#customizing-app-name)
+    - [Create App Shortcut](#create-app-shortcut)
+    - [Call App](#call-app)
 - [Build](#build)
 
 
@@ -52,9 +55,10 @@ This library is packaged with [ntfy-desktop](https://github.com/Aetherinox/ntfy-
 <br />
 
 # About
-Getting familiar with the projects:
+ntfy-toast _(also known as Node-Toasted)_, is a command line application capable of creating Windows Toast notifications on Windows 8 or later.  This app is part of a family of applications called `Ntfy` or Notify.
 
 <br />
+
 
 ## What is ntfy?
 [ntfy.sh](https://ntfy/) (pronounced "notify") is a simple HTTP-based pub-sub notification service. With ntfy, you can send notifications to your phone or desktop via scripts from any computer, without having to sign up or pay any fees. If you'd like to run your own instance of the service, you can easily do so since ntfy is open source.
@@ -83,7 +87,7 @@ This version of ntfy-desktop is based on the package ntfy-electron created by xd
 <br />
 
 ## What is ntfy-toast
-[ntfy-toast](https://github.com/Aetherinox/ntfy-toast) is a notification system for Windows 10/11 which is used within [ntfy-desktop](https://github.com/Aetherinox/ntfy-desktop) to display notifications for users.
+[ntfy-toast](https://github.com/Aetherinox/ntfy-toast) _(the app in this repo)_ is a notification system for Windows 10/11 which is used within [ntfy-desktop](https://github.com/Aetherinox/ntfy-desktop) to display notifications for users.
 
 It is based on [SnoreToast](https://github.com/KDE/snoretoast), but has been updated with numerous features.
 
@@ -108,15 +112,40 @@ It is based on [SnoreToast](https://github.com/KDE/snoretoast), but has been upd
 When using the command-line to show notifications, you can push a notification by opening Command Prompt and running:
 
 ```shell
-cd X:\path\to\ntfy-toast\out\build\x64-Debug\bin
+cd X:\path\to\ntfytoast
 ```
 
 <br />
 
 Then push a notification with:
 ```shell ignore
-ntfy-toast.exe -t "Title" -m "Message" -persistent
+ntfytoast.exe -t "Title" -m "Message"
 ```
+
+<br />
+
+To make a notification stay on screen until the user dismisses it, add `-persistent`.
+```shell ignore
+ntfytoast.exe -t "Title" -m "Message" -persistent
+```
+
+<br />
+
+To make a notifiation stay on-screen for `25 seconds`, use `-d long`
+```shell ignore
+ntfytoast.exe -t "Title" -m "Message" -d long
+```
+
+<br />
+
+To make a notifiation stay on-screen for `7 seconds`, use `-d short`
+```shell ignore
+ntfytoast.exe -t "Title" -m "Message" -d short
+```
+
+<br />
+
+Other available options are listed below within the section [CLI Arguments](#cli-arguments).
 
 <br />
 
@@ -143,6 +172,97 @@ ntfy-toast.exe -t "Title" -m "Message" -persistent
 | `-pipeName` | `<\.\pipe\pipeName\>` | Name pipe which is used for callbacks |
 | `-application` | `<C:\foo\bar.exe>` | App to start if the pipe does not exist |
 | `-close` | `<id>` | Close an existing notification |
+
+<br />
+
+---
+
+<br />
+
+## Customizing App Name
+Windows Toast notifications will show the name of the application calling the notification at the top of each popup. Out-of-box, the application name will be NtfyToast.
+
+If you wish to brand notifications with your own application name, then there are a few steps you must complete.
+
+<br />
+
+### Create App Shortcut
+You must create a windows shortcut (.lnk) within your windows Start Menu. This is a requirement by Microsoft.
+
+NtfyToast includes a command which will help you create the shortcut link automatically. To do this, open Command Prompt and run the command:
+
+```shell
+ntfytoast.exe -install "MyApp\MyApp.lnk" "C:\path\to\myApp.exe" "My.APP_ID"
+```
+
+<br />
+
+| Argument | Description |
+| --- | --- |
+| `"MyApp\MyApp.lnk"` | Where the lnk shortcut will be placed.  <br /> <br /> `C:\Users\USER\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\MyApp\MyApp.lnk` |
+| `"C:\path\to\myApp.exe"` | Path to the executable you want to show the name for at the top of notifications |
+| `"My.APP_ID"` | Your .exe app id |
+
+<br />
+
+When the `.lnk` is created, it will be placed in:
+```
+C:\Users\USER\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
+```
+
+<br />
+
+To get the appID for the application you want to use, you can open Powershell and run the command:
+
+```powershell
+get-StartApps | Where-Object {$_.Name -like '*YourAppName*'}
+```
+
+<br />
+
+In our example, we can run
+```powershell
+get-StartApps | Where-Object {$_.Name -like '*Ntfytoast*'}
+```
+
+<br />
+
+Which returns the following:
+```console
+Name      AppID
+----      -----
+ntfytoast com.ntfytoast.id
+```
+
+<br />
+
+This means that if I wanted to use NtfyToast as the app which sends notifications, my final command would be:
+
+```
+ntfytoast.exe -install "Ntfytoast\Ntfytoast.lnk" "C:\path\to\ntfytoast.exe" "com.ntfytoast.id"
+```
+
+<br />
+
+<div align="center">
+
+<img src="https://github.com/Aetherinox/ntfy-toast/assets/118329232/ea9da9f3-4c8c-4fe5-9714-d4e83901f301" width="380px">
+
+</div>
+
+
+<br />
+
+### Call App
+Now that you have your app shortcut created, you can simply call the app every time you want to send a notification using `-appID`. Remember to use your own app's id.
+
+```
+ntfytoast.exe -t "Notification" -m "This is a test message" -appID "com.ntfytoast.id"
+```
+
+<br />
+
+If you do not specify `-appID <your.app.id>`, then the NtfyToast will be used as the default.
 
 <br />
 
@@ -185,9 +305,16 @@ You can now start writing your code. Once you are finished, you need to build th
 <br />
 
 Your binary will be built and placed inside:
-- `project-folder/out/build/x64-Debug/bin/ntfy-toast.exe`
+- `project-folder/out/build/x64-Debug/bin/ntfytoast.exe`
 
 <br />
+
+<br />
+
+---
+
+<br />
+
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
