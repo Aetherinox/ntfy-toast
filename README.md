@@ -1,10 +1,10 @@
 <div align="center">
-<h1>♾️ ntfy-toast ♾️</h1>
+<h1>♾️ NtfyToast ♾️</h1>
 <br />
 
 <p>
 
-ntfy-toast is a forked verison of [SnoreToast](https://github.com/KDE/snoretoast) which has been modified to fit a certain list of criteria, including notifications that do not time out.
+NtfyToast is a forked verison of [SnoreToast](https://github.com/KDE/snoretoast) which has been modified to fit a certain list of criteria, including notifications that do not time out.
 
 <br />
 
@@ -55,7 +55,7 @@ This library is packaged with [ntfy-desktop](https://github.com/Aetherinox/ntfy-
 <br />
 
 # About
-ntfy-toast _(also known as Node-Toasted)_, is a command line application capable of creating Windows Toast notifications on Windows 8 or later.  This app is part of a family of applications called `Ntfy` or Notify.
+NtfyToast is a command line application capable of creating Windows Toast notifications on Windows 8 or later.  This app is part of a family of applications called `Ntfy` or Notify.
 
 <br />
 
@@ -74,7 +74,7 @@ ntfy-toast _(also known as Node-Toasted)_, is a command line application capable
 <br />
 
 ## What is ntfy-desktop
-[ntfy-desktop](https://github.com/Aetherinox/ntfy-desktop) allows you to access the official free / paid notification service [ntfy.sh](https://ntfy.sh/), or your own self-hosted version of ntfy from within a desktop application which utilizes Electron as the wrapper.
+[NtfyDesktop](https://github.com/Aetherinox/ntfy-desktop) allows you to access the official free / paid notification service [ntfy.sh](https://ntfy.sh/), or your own self-hosted version of ntfy from within a desktop application which utilizes Electron as the wrapper.
 
 This version of ntfy-desktop is based on the package ntfy-electron created by xdpirate, however, this version brings some changes in functionality, as well as some additional edits that I personally needed.
 
@@ -87,7 +87,7 @@ This version of ntfy-desktop is based on the package ntfy-electron created by xd
 <br />
 
 ## What is ntfy-toast
-[ntfy-toast](https://github.com/Aetherinox/ntfy-toast) _(the app in this repo)_ is a notification system for Windows 10/11 which is used within [ntfy-desktop](https://github.com/Aetherinox/ntfy-desktop) to display notifications for users.
+[NtfyToast](https://github.com/Aetherinox/ntfy-toast) _(the app in this repo)_ is a notification system for Windows 10/11 which is used within [ntfy-desktop](https://github.com/Aetherinox/ntfy-desktop) to display notifications for users.
 
 It is based on [SnoreToast](https://github.com/KDE/snoretoast), but has been updated with numerous features.
 
@@ -289,7 +289,7 @@ Go to **File** -> **Open** -> **Folder**.
 
 <br />
 
-Select the folder where you downloaded ntfy-toast and open it. After a few moments, a few new folders will be created in your project directory:
+Select the folder where you downloaded NtfyToast and open it. After a few moments, a few new folders will be created in your project directory:
 
 - 📁 .vs
 - 📁 out
