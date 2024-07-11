@@ -262,7 +262,7 @@ ntfytoast.exe -t "Notification" -m "This is a test message" -appID "com.ntfytoas
 
 <br />
 
-If you do not specify `-appID <your.app.id>`, then the NtfyToast will be used as the default.
+If you do not specify `-appID <your.app.id>`, then NtfyToast will be used as the default.
 
 <br />
 
