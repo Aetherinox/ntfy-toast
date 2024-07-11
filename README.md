@@ -271,6 +271,10 @@ If you do not specify `-appID <your.app.id>`, then NtfyToast will be used as the
 <br />
 
 # Build
+These instructions are only for people who wish to make changes to the NtfyToast source code / commit changes to the repo via pull requests. If you have no interest in editing the source code, then you can skip this section.
+
+<br />
+
 The easiest way to build this package is to download the source and place it somewhere on your system. Then install Visual Studio and launch the application. 
 
 Go to **File** -> **Open** -> **Folder**.
